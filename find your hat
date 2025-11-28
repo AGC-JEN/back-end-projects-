@@ -1,0 +1,100 @@
+const prompt = require('prompt-sync')({sigint: true});
+
+const hat = '^';
+const hole = 'O';
+const fieldCharacter = '░';
+const pathCharacter = '*';
+
+class Field {
+    constructor(fieldArray) {
+        this.field = fieldArray;
+
+        // Random safe starting point
+        let x, y;
+        do {
+            x = Math.floor(Math.random() * this.field[0].length);
+            y = Math.floor(Math.random() * this.field.length);
+        } while (this.field[y][x] === hole || this.field[y][x] === hat);
+
+        this.playerX = x;
+        this.playerY = y;
+
+        this.field[y][x] = pathCharacter;
+    }
+
+    print() {
+        for (let row of this.field) {
+            console.log(row.join(''));
+        }
+    }
+
+    runGame() {
+        let playing = true;
+
+        while (playing) {
+            this.print();
+            const direction = prompt('Which way? (u, d, l, r): ').toLowerCase();
+
+            // Movement logic
+            switch (direction) {
+                case 'u':
+                    this.playerY -= 1;
+                    break;
+                case 'd':
+                    this.playerY += 1;
+                    break;
+                case 'l':
+                    this.playerX -= 1;
+                    break;
+                case 'r':
+                    this.playerX += 1;
+                    break;
+                default:
+                    console.log("Invalid input — use u, d, l, or r.");
+                    continue;
+            }
+
+            // Out of bounds?
+            if (
+                this.playerY < 0 || 
+                this.playerY >= this.field.length ||
+                this.playerX < 0 ||
+                this.playerX >= this.field[0].length
+            ) {
+                console.log("You stepped off the map! Game over.");
+                playing = false;
+                break;
+            }
+
+            // Hat?
+            if (this.field[this.playerY][this.playerX] === hat) {
+                console.log("🎉 You found your hat! You win!");
+                playing = false;
+                break;
+            }
+
+            // Hole?
+            if (this.field[this.playerY][this.playerX] === hole) {
+                console.log("💀 You fell into a hole! Game over.");
+                playing = false;
+                break;
+            }
+
+            // Mark path
+            this.field[this.playerY][this.playerX] = pathCharacter;
+        }
+    }
+
+    // Simple test field
+    static generateField() {
+        return [
+            [fieldCharacter, fieldCharacter, hole],
+            [fieldCharacter, hole, fieldCharacter],
+            [fieldCharacter, fieldCharacter, hat]
+        ];
+    }
+}
+
+// Create a field and start the game
+const myField = new Field(Field.generateField());
+myField.runGame();
